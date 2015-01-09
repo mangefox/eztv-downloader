@@ -74,7 +74,7 @@ def show_list(episodes):
     if not str.isdigit(inp):
         return None
     epnumber = int(inp)-1
-    if epnumber < 1 or epnumber > list_length:
+    if epnumber < 0 or epnumber > list_length-1:
         return None
     return epnumber
 
