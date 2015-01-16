@@ -13,7 +13,11 @@ example usage:
 
 from bs4 import BeautifulSoup
 from collections import namedtuple
-import sys, requests, webbrowser
+import sys, requests, webbrowser, re
+# from operator import attrgetter
+
+# disallow same episode listed multiple times
+NO_DUPLICATES = True
 
 Episode = namedtuple('Episode', 'name link age')
 
@@ -37,6 +41,34 @@ def parse_args(args):
         epnumber = 0
 
     return searchterm, epnumber
+
+# --------------------------------------------------------------------------- #
+
+def filter_dupes(episodes):
+    # if first episode name doesn't contain S00E00, abort
+    check_naming = re.search('S\d\dE\d\d', episodes[0].name)
+    if check_naming == None:
+        return episodes
+
+    # set to check against duplicate episode numbers
+    epset = set()
+
+    def is_dupe(name):
+        hit = re.search('S\d\dE\d\d', name)
+        if hit != None:
+            ep = name[hit.start():hit.start()+6]
+            if ep not in epset:
+                epset.add(ep)
+                return False
+            else:
+                return True
+
+    # filter out dupes
+    episodes = [ep for ep in episodes if not is_dupe(ep.name)]
+
+    # sort the list (may break most recent on top)
+    # episodes = sorted(episodes, key=attrgetter('name'), reverse=True)
+    return episodes
 
 # --------------------------------------------------------------------------- #
 
@@ -97,6 +129,9 @@ def main():
 
     # filter out results which dont contain all search terms
     episodes = [ep for ep in episodes if match_all(searchterm, ep.name)]
+
+    if NO_DUPLICATES:
+        episodes = filter_dupes(episodes)
 
     if len(episodes) == 0:
         print "No hits."
