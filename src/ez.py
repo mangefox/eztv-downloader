@@ -41,7 +41,7 @@ def parse_args(args):
 # --------------------------------------------------------------------------- #
 
 def get_episodes(searchterm):
-    url = 'https://eztv.it/search/'
+    url = 'https://eztv.ch/search/'
     payload = {'SearchString': '',
                'SearchString1': searchterm,
                'search': 'Search'}
@@ -70,7 +70,10 @@ def show_list(episodes):
         print "%2d. %s %s" % (index+1,
                               ep.name[:max_width].ljust(max_width+2),
                               ep.age.ljust(9))
-    inp = raw_input()
+    try:
+        inp = raw_input()
+    except KeyboardInterrupt:
+        exit()
     if not str.isdigit(inp):
         return None
     epnumber = int(inp)-1
