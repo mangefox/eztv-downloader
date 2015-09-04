@@ -13,11 +13,11 @@ example usage:
 
 from bs4 import BeautifulSoup
 from collections import namedtuple
-import sys, requests, webbrowser, re
+import sys, requests, webbrowser, re, traceback, time
 # from operator import attrgetter
 
 # disallow same episode listed multiple times
-NO_DUPLICATES = True
+NO_DUPLICATES = False
 
 Episode = namedtuple('Episode', 'name link age')
 
@@ -26,7 +26,6 @@ Episode = namedtuple('Episode', 'name link age')
 def parse_args(args):
     if len(args) < 2:
         print "Error: Missing arguments"
-        exit()
 
     # if last argument is question mark, show list of eps
     if args[-1] == '?':
@@ -45,6 +44,9 @@ def parse_args(args):
 # --------------------------------------------------------------------------- #
 
 def filter_dupes(episodes):
+    if len(episodes) == 0:
+        return
+
     # if first episode name doesn't contain S00E00, abort
     check_naming = re.search('S\d\dE\d\d', episodes[0].name)
     if check_naming == None:
@@ -57,11 +59,11 @@ def filter_dupes(episodes):
         hit = re.search('S\d\dE\d\d', name)
         if hit != None:
             ep = name[hit.start():hit.start()+6]
-            if ep not in epset:
+            if ep in epset:
+                return True
+            else:
                 epset.add(ep)
                 return False
-            else:
-                return True
 
     # filter out dupes
     episodes = [ep for ep in episodes if not is_dupe(ep.name)]
@@ -73,28 +75,40 @@ def filter_dupes(episodes):
 # --------------------------------------------------------------------------- #
 
 def get_episodes(searchterm):
-    url = 'https://eztv.ch/search/'
-    payload = {'SearchString': '',
-               'SearchString1': searchterm,
-               'search': 'Search'}
-    req = requests.post(url, data=payload, timeout=5, verify=False)
-    soup = BeautifulSoup(req.content, 'html.parser')
+    try:
+        # start_time = time.time()
+        # url = 'https://eztv.it/search/'
+        url = 'https://eztv.ch/search/'
+        # url = 'https://eztv-proxy.net/search/'
+        # url = 'http://eztv.bitproxy.eu/'
+        payload = {'SearchString': '',
+                   'SearchString1': searchterm,
+                   'search': 'Search'}
+        req = requests.post(url, data=payload, timeout=60, verify=False)
+        soup = BeautifulSoup(req.content, 'html.parser')
 
-    hits = soup.findAll('a', attrs={'class': 'epinfo'})
-    magnets = soup.findAll('a', attrs={'class': 'magnet'})
-    released = soup.findAll('tr', attrs={'class': 'forum_header_border', 'name': 'hover'})
+        hits = soup.findAll('a', attrs={'class': 'epinfo'})
+        magnets = soup.findAll('a', attrs={'class': 'magnet'})
+        released = soup.findAll('tr', attrs={'class': 'forum_header_border', 'name': 'hover'})
 
-    # zip into a list of tuples, one tuple for each episode (name, magnet link, age)
-    zipped = zip([h.text for h in hits],
-                 [m['href'] for m in magnets],
-                 [list(r.children)[7].text for r in released if len(list(r.children)) > 7])
+        # zip into a list of tuples, one tuple for each episode (name, magnet link, age)
+        zipped = zip([h.text for h in hits],
+                     [m['href'] for m in magnets],
+                     [list(r.children)[7].text for r in released if len(list(r.children)) > 7])
 
-    episodes = [Episode(z[0], z[1], z[2]) for z in zipped]
-    return episodes
+        episodes = [Episode(z[0], z[1], z[2]) for z in zipped]
+        # print "GET took %.2f sec" % (time.time()-start_time)
+        return episodes
+    except:
+        print traceback.format_exc()
+        # print sys.exc_info()[0]
+        raw_input()
+        # print "Connection failed"
+        exit()
 
 # --------------------------------------------------------------------------- #
 
-def show_list(episodes):
+def show_list_selection(episodes):
     print "Select episode to download:"
     list_length = 15
     max_width = max(len(ep.name) for ep in episodes[:list_length])
@@ -124,6 +138,7 @@ def match_all(searchstring, epname):
 # --------------------------------------------------------------------------- #
 
 def main():
+    sys.argv = ['', 'maher?']
     searchterm, epnumber = parse_args(sys.argv)
     episodes = get_episodes(searchterm)
 
@@ -133,12 +148,12 @@ def main():
     if NO_DUPLICATES:
         episodes = filter_dupes(episodes)
 
-    if len(episodes) == 0:
+    if len(episodes) == 0 or not episodes:
         print "No hits."
         return
 
     if epnumber is None:
-        epnumber = show_list(episodes)
+        epnumber = show_list_selection(episodes)
 
     if epnumber is not None:
         print "Opening magnetic link for %s" % episodes[epnumber].name
