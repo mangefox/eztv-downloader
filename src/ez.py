@@ -98,7 +98,7 @@ def get_episodes(searchterm):
         # zip into a list of tuples, one tuple for each episode (name, magnet link, age)
         zipped = zip([h.text for h in hits],
                      [m['href'] for m in magnets],
-                     [list(r.children)[7].text for r in released if len(list(r.children)) > 7])
+                     [list(r.children)[9].text for r in released if len(list(r.children)) > 9])
 
         episodes = [Episode(z[0], z[1], z[2]) for z in zipped]
         # print "GET took %.2f sec" % (time.time()-start_time)
@@ -142,7 +142,7 @@ def match_all(searchstring, epname):
 # --------------------------------------------------------------------------- #
 
 def main():
-    sys.argv = ['', 'maher?']
+    # sys.argv = ['', 'maher?']
     searchterm, epnumber = parse_args(sys.argv)
     episodes = get_episodes(searchterm)
 
@@ -161,7 +161,7 @@ def main():
 
     if epnumber is not None:
         print "Opening magnetic link for %s" % episodes[epnumber].name
-        webbrowser.open_new_tab( episodes[epnumber].link )
+        webbrowser.open_new_tab(episodes[epnumber].link)
 
 # --------------------------------------------------------------------------- #
 
