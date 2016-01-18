@@ -14,6 +14,10 @@ example usage:
 from bs4 import BeautifulSoup
 from collections import namedtuple
 import sys, requests, webbrowser, re, traceback, time
+
+
+requests.packages.urllib3.disable_warnings()
+
 # from operator import attrgetter
 
 # disallow same episode listed multiple times
@@ -78,7 +82,7 @@ def get_episodes(searchterm):
     try:
         # start_time = time.time()
         # url = 'https://eztv.it/search/'
-        url = 'https://eztv.ch/search/'
+        url = 'https://eztv.ag/search/'
         # url = 'https://eztv-proxy.net/search/'
         # url = 'http://eztv.bitproxy.eu/'
         payload = {'SearchString': '',
