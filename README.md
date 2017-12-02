@@ -8,6 +8,8 @@ The binary has no dependencies.
 
 The python version requires BeautifulSoup4 (`pip install beautifulsoup4`)
 
+Make sure your .py association passes arguments (e.g. `"C:\Python36\python.exe" "%1" %*`)
+
 ### Example usage
  ` ez.py family guy` will download most recent family guy ep
   
