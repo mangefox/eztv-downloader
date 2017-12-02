@@ -4,9 +4,7 @@ Get tv episodes from eztv.it through command line.
 Uses magnetic links so you will need to have them associated with a torrent client.
 
 ### Dependencies
-The binary has no dependencies.
-
-The python version requires BeautifulSoup4 (`pip install beautifulsoup4`)
+Requires _requests_ and _BeautifulSoup4_ (`pip install requests bs4`)
 
 Make sure your .py association passes arguments (e.g. `"C:\Python36\python.exe" "%1" %*`)
 
